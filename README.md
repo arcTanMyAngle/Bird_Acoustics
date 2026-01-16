@@ -1,6 +1,6 @@
 # California Bird Acoustic Detection System
 
-Real-time bird species classification on edge hardware using TinyML.
+Real-time bird species classification on edge hardware using TinyML. 
 
 ## Overview
 
@@ -8,7 +8,7 @@ This project deploys a CNN-based acoustic classifier on a Seeed XIAO ESP32S3 Sen
 
 **Key Metrics:**
 - Validation Accuracy: 85%+
-- Inference Latency: <500ms per 3-second clip
+- Inference Latency: <12 - 15 seconds for now (next time I will be utilizing ESP-IDF for faster inference)
 - Power Consumption: ~150mA active
 - Total Hardware Cost: ~$50
 
@@ -92,16 +92,16 @@ uv run python scripts/augment_audio.py
 # 5. Train model
 uv run python scripts/train.py --epochs 50 --batch-size 32
 
-# 6. Export for edge deployment
-uv run python scripts/export_model.py
+# 6. Export for edge deployment (had to create our own softmax since the library utilized from 2022 was missing many functions)
+uv run python scripts/export_tflite_sum.py
 ```
 
 ### Firmware Deployment
 
 1. Open `firmware/bird_detector/bird_detector.ino` in Arduino IDE
-2. Install ESP32 board support (Espressif Systems v3.x)
+2. Install ESP32 board support (Espressif Systems v2.0.17)
 3. Select board: **XIAO_ESP32S3**
-4. Add Edge Impulse library (generated from trained model)
+4. Add TensorFlowLite_ESP32 library 
 5. Upload to device
 
 ## Technical Details
@@ -113,7 +113,8 @@ Compact CNN optimized for ESP32-S3 constraints:
 - 4 convolutional blocks (16 → 32 → 64 → 64 channels)
 - Batch normalization and max pooling
 - Adaptive average pooling for variable input sizes
-- ~25K parameters (~100KB quantized)
+- used LTH (lottery ticket hypothesis for structured pruning)
+- around 76k quantizd
 
 ### Audio Processing
 
@@ -178,7 +179,6 @@ See `pyproject.toml` for complete list.
 
 - [Xeno-canto](https://xeno-canto.org/) - Bird recording database
 - [ESC-50](https://github.com/karolpiczak/ESC-50) - Environmental sound classification dataset
-- [Edge Impulse](https://edgeimpulse.com/) - TinyML deployment platform
 - [XIAO ESP32S3 Sense](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) - Hardware documentation
 
 ## License
@@ -187,7 +187,7 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 ## Author
 
-arcT
+arcTanMyAngle 
 
 ---
 
