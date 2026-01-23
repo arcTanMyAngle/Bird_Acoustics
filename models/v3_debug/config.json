@@ -1,0 +1,26 @@
+{
+  "args": {
+    "data_dir": "data/augmented",
+    "output_dir": "models/v3_debug",
+    "epochs": 50,
+    "batch_size": 32,
+    "lr": 0.003,
+    "weight_decay": 0.01,
+    "dropout": 0.3,
+    "patience": 25,
+    "seed": 42,
+    "no_augment": true
+  },
+  "results": {
+    "best_val_acc": 95.47581903276131,
+    "best_epoch": 45
+  },
+  "classes": [
+    "american_crow",
+    "background",
+    "california_quail",
+    "great_horned_owl",
+    "red_tailed_hawk",
+    "western_meadowlark"
+  ]
+}
