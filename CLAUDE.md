@@ -26,6 +26,9 @@ ESP-IDF **v6.0.1** installed via EIM at `C:\esp\v6.0.1\esp-idf` (tools in `C:\Es
 `cmd /c "call C:\Espressif\tools\Microsoft.v6.0.1_profile.bat && cd /d c:\Users\bornt\Desktop\Bird_Acoustics\firmware && idf.py build"`
 Managed deps: esp-nn 1.2.3 (via esp-tflite-micro 1.3.7). **esp-dsp is intentionally NOT a dependency** — xtensa-gcc 15.2 (bundled with IDF v6.0.1) segfaults compiling `dspi_conv_f32_ansi.c`; the firmware uses the portable FFT in `frontend_fft_ref.c` instead (same one proven against torchaudio in the host parity test — `firmware/host_test/`). (A partial v5.5 clone also exists at C:\Espressif\frameworks\esp-idf — unused.)
 
+## VS Code ESP-IDF extension
+Open `Bird_Acoustics.code-workspace` or open `firmware/` directly. The ESP-IDF project root is `firmware/`; running extension commands from `c:\Users\bornt\Desktop\Bird_Acoustics` fails because that repo root intentionally has no `CMakeLists.txt`.
+
 ## Docs
 - `docs/PROGRESS.md` — one line per passed phase gate (measured numbers).
 - `docs/MODEL_CONTRACT.md` — human-readable mirror of generated model_meta.h.

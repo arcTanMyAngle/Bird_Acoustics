@@ -137,6 +137,18 @@ idf.py -p COMx flash monitor
 Board pins (XIAO ESP32S3 Sense): PDM mic CLK=GPIO42 DATA=GPIO41; SD (SDSPI)
 CS=GPIO21 SCK=GPIO7 MISO=GPIO8 MOSI=GPIO9.
 
+### VS Code / ESP-IDF extension
+
+The ESP-IDF project root is `firmware/`, not the repository root. If the
+Espressif extension runs `set-target` or `build` from `Bird_Acoustics/`, it
+will fail with `CMakeLists.txt not found in project directory`.
+
+Use one of these workflows:
+
+- Open `Bird_Acoustics.code-workspace`, then choose the `firmware` workspace
+  folder when the ESP-IDF extension asks which project to use.
+- Or open `Bird_Acoustics/firmware` directly as the VS Code folder.
+
 ## Model Architecture
 
 Compact CNN (`BirdClassifierCNN`, ~65K params), 4 conv blocks (16→32→64→64

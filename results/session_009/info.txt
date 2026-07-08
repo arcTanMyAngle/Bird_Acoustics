@@ -1,0 +1,14 @@
+Bird Acoustic Detection - Field Session
+========================================
+Detection threshold: 0.00
+Confirm frames: 1
+Sample rate: 16000 Hz
+Audio duration: 3000 ms
+
+Classes:
+  0: american_crow
+  1: background
+  2: california_quail
+  3: great_horned_owl
+  4: red_tailed_hawk
+  5: western_meadowlark
