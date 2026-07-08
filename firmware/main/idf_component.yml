@@ -1,0 +1,6 @@
+dependencies:
+  idf: ">=5.3"
+  espressif/esp-tflite-micro: "*"
+  # esp-dsp removed: xtensa-gcc 15.2 (IDF v6.0.1) ICEs on dspi_conv_f32_ansi.c.
+  # The portable FFT in frontend_fft_ref.c costs ~10 ms/window — negligible at 1 s hop —
+  # and makes device FFT identical to the host-parity-tested one.

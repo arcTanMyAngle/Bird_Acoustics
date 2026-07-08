@@ -1,0 +1,46 @@
+{
+  "args": {
+    "data_dir": "data/augmented",
+    "output_dir": "models/v5",
+    "epochs": 100,
+    "batch_size": 32,
+    "lr": 0.001,
+    "weight_decay": 0.01,
+    "dropout": 0.3,
+    "patience": 20,
+    "seed": 42,
+    "no_augment": false,
+    "hard_negative_mining": false,
+    "eval_noise_every": 10
+  },
+  "results": {
+    "best_val_acc": 91.45936981757878,
+    "best_epoch": 19,
+    "test_acc": 90.24780175859313,
+    "background_rejection_rate": 96.0,
+    "false_positive_rate": 4.0
+  },
+  "classes": [
+    "american_crow",
+    "background",
+    "california_quail",
+    "california_scrub_jay",
+    "great_horned_owl",
+    "killdeer",
+    "mourning_dove",
+    "red_tailed_hawk",
+    "western_meadowlark"
+  ],
+  "thresholds": {
+    "american_crow": 0.12514561414718628,
+    "background": 0.4070029854774475,
+    "california_quail": 0.2677874267101288,
+    "california_scrub_jay": 0.793388843536377,
+    "great_horned_owl": 0.07302145659923553,
+    "killdeer": 0.1046818420290947,
+    "mourning_dove": 0.17039752006530762,
+    "red_tailed_hawk": 0.26031821966171265,
+    "western_meadowlark": 0.35498350858688354
+  },
+  "timestamp": "2026-07-07T19:34:36.734454"
+}

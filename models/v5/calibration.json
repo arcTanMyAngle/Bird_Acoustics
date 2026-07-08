@@ -1,0 +1,27 @@
+{
+  "temperature": 0.6514910459518433,
+  "tau": 0.6200000000000002,
+  "background_idx": 1,
+  "classes": [
+    "american_crow",
+    "background",
+    "california_quail",
+    "california_scrub_jay",
+    "great_horned_owl",
+    "killdeer",
+    "mourning_dove",
+    "red_tailed_hawk",
+    "western_meadowlark"
+  ],
+  "val_fp_rate": 0.0,
+  "val_bird_recall": 0.865546218487395,
+  "test_fp_rate": 0.022222222222222223,
+  "test_bird_recall": 0.8467741935483871,
+  "target_fp": 0.05,
+  "energy_diag": {
+    "bg_mean": 2.8269248008728027,
+    "bg_std": 0.5332798361778259,
+    "bird_mean": 3.5829896926879883,
+    "bird_std": 1.0785956382751465
+  }
+}

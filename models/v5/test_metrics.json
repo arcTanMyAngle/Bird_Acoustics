@@ -1,0 +1,72 @@
+{
+  "test_acc": 90.24780175859313,
+  "report": {
+    "american_crow": {
+      "precision": 1.0,
+      "recall": 0.8666666666666667,
+      "f1-score": 0.9285714285714286,
+      "support": 120.0
+    },
+    "background": {
+      "precision": 0.8493150684931506,
+      "recall": 0.9185185185185185,
+      "f1-score": 0.8825622775800712,
+      "support": 135.0
+    },
+    "california_quail": {
+      "precision": 0.8571428571428571,
+      "recall": 0.9047619047619048,
+      "f1-score": 0.8803088803088803,
+      "support": 126.0
+    },
+    "california_scrub_jay": {
+      "precision": 0.6043956043956044,
+      "recall": 0.9649122807017544,
+      "f1-score": 0.7432432432432432,
+      "support": 57.0
+    },
+    "great_horned_owl": {
+      "precision": 0.9797979797979798,
+      "recall": 0.8290598290598291,
+      "f1-score": 0.8981481481481481,
+      "support": 117.0
+    },
+    "killdeer": {
+      "precision": 0.9313725490196079,
+      "recall": 0.945273631840796,
+      "f1-score": 0.9382716049382716,
+      "support": 201.0
+    },
+    "mourning_dove": {
+      "precision": 0.9041916167664671,
+      "recall": 0.9320987654320988,
+      "f1-score": 0.9179331306990881,
+      "support": 162.0
+    },
+    "red_tailed_hawk": {
+      "precision": 0.9115646258503401,
+      "recall": 0.9305555555555556,
+      "f1-score": 0.9209621993127147,
+      "support": 144.0
+    },
+    "western_meadowlark": {
+      "precision": 1.0,
+      "recall": 0.8465608465608465,
+      "f1-score": 0.9169054441260746,
+      "support": 189.0
+    },
+    "accuracy": 0.9024780175859313,
+    "macro avg": {
+      "precision": 0.8930867001628897,
+      "recall": 0.90426755545533,
+      "f1-score": 0.8918784841031022,
+      "support": 1251.0
+    },
+    "weighted avg": {
+      "precision": 0.9158230837130665,
+      "recall": 0.9024780175859313,
+      "f1-score": 0.9049984343930472,
+      "support": 1251.0
+    }
+  }
+}

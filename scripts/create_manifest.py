@@ -48,7 +48,11 @@ def create_manifest(data_dir: Path, output_path: Path):
         print(f"   {cls}: {count}")
 
 if __name__ == "__main__":
-    create_manifest(
-        Path("data/processed"),
-        Path("data/manifest.json")
-    )
+    import argparse
+    parser = argparse.ArgumentParser(description="Create data manifest")
+    parser.add_argument("--data-dir", type=Path, default=Path("data/processed"))
+    parser.add_argument("--output", type=Path, default=None,
+                        help="Default: <data-dir parent>/manifest_<dirname>.json")
+    args = parser.parse_args()
+    output = args.output or args.data_dir.parent / f"manifest_{args.data_dir.name}.json"
+    create_manifest(args.data_dir, output)
