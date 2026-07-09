@@ -2,14 +2,17 @@
 #include "model_data.h"
 
 #include <cmath>
+#include "esp_heap_caps.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace {
-constexpr int kArenaSize = 200 * 1024;  // shrink after reading arena_used_bytes()
-uint8_t arena[kArenaSize];
+// 64-mel model needs ~262 KB (AllocateTensors). Too large for internal .bss
+// (dram0_0_seg overflows), so the arena lives in PSRAM. See arena_used_bytes().
+constexpr int kArenaSize = 320 * 1024;
+uint8_t *arena = nullptr;
 tflite::MicroInterpreter *interpreter;
 TfLiteTensor *input, *output;
 }  // namespace
@@ -20,6 +23,14 @@ extern "C" int model_runner_init(void)
     if (model->version() != TFLITE_SCHEMA_VERSION) {
         MicroPrintf("schema %lu != %d", model->version(), TFLITE_SCHEMA_VERSION);
         return -1;
+    }
+
+    if (!arena) {
+        arena = (uint8_t *)heap_caps_malloc(kArenaSize, MALLOC_CAP_SPIRAM);
+        if (!arena) {
+            MicroPrintf("arena alloc failed (%d B PSRAM)", kArenaSize);
+            return -4;
+        }
     }
 
     // Exact op set of the exported graph (MEAN lowers to SUM+MUL)

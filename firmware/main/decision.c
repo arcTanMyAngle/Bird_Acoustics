@@ -25,7 +25,9 @@ decision_t decision_update(const float *logits)
 
     d.class_idx = best;
     d.prob = p[best] / sum;
-    d.window_hit = (best != BACKGROUND_IDX) && (d.prob >= DETECT_TAU);
+    // Per-class threshold (v6): low tau for high-precision classes (great_horned_owl) recovers
+    // recall; high tau for over-predicted classes (california_scrub_jay) lifts precision.
+    d.window_hit = (best != BACKGROUND_IDX) && (d.prob >= DETECT_TAU_PER_CLASS[best]);
 
     hist[hist_pos] = d.window_hit ? best : -1;
     hist_pos = (hist_pos + 1) % SMOOTH_N;
