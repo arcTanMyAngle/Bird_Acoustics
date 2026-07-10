@@ -1,0 +1,28 @@
+{
+  "architecture": "BirdClassifierESP32Mean (torch.mean for global pooling)",
+  "classes": [
+    "american_crow",
+    "background",
+    "california_quail",
+    "california_scrub_jay",
+    "great_horned_owl",
+    "killdeer",
+    "mourning_dove",
+    "red_tailed_hawk",
+    "western_meadowlark"
+  ],
+  "expected_esp32_ops": [
+    "CONV_2D",
+    "MAX_POOL_2D",
+    "MEAN",
+    "FULLY_CONNECTED",
+    "QUANTIZE",
+    "DEQUANTIZE"
+  ],
+  "results": {
+    "pytorch_accuracy": 93.0,
+    "tflite_accuracy": 93.0,
+    "agreement": 100.0,
+    "is_quantized": true
+  }
+}

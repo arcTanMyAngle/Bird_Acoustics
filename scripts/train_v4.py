@@ -41,12 +41,13 @@ import seaborn as sns
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
 from dataset_v3 import (
-    create_dataloaders_v3, 
-    BirdAudioDatasetV3, 
+    create_dataloaders_v3,
+    BirdAudioDatasetV3,
     NoiseRejectionTestSet,
     HardNegativeMiner,
     BACKGROUND_CLASS,
 )
+from losses import CBFocalLoss  # v6: class-balanced focal loss
 
 
 # =============================================================================
@@ -427,6 +428,7 @@ def train(
     output_dir: Path,
     class_weights: torch.Tensor,
     classes: List[str],
+    class_counts: Optional[List[int]] = None,  # v6: per-class counts for CB-Focal
     lr: float = 0.001,
     weight_decay: float = 0.01,
     patience: int = 20,
@@ -454,10 +456,19 @@ def train(
     print(f"Hard negative mining: {'enabled' if hard_negative_miner else 'disabled'}")
     print(f"Device: {device}")
     
-    # Loss function. Class-weighted CE is the ONLY imbalance correction (the weighted
-    # sampler is disabled in main() — using both double-corrects and skews the boundary).
-    # Label smoothing tempers overconfidence so the softmax threshold has headroom.
-    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device), label_smoothing=0.1)
+    # Loss function: the ONLY imbalance correction (weighted sampler stays disabled in main();
+    # stacking corrections double-counts and skews the boundary). For the v6 calibration retune,
+    # keep CB-Focal unsmoothed so temperature scaling has a sharper confidence signal.
+    # v6: Class-Balanced Focal Loss (scripts/losses.py) replaces weighted CE. The focal term
+    # concentrates gradient on hard great_horned_owl positives and california_scrub_jay
+    # confusions; effective-number weighting handles the scrub_jay/killdeer imbalance.
+    if class_counts is not None:
+        criterion = CBFocalLoss(class_counts, gamma=2.0, beta=0.999,
+                                label_smoothing=0.0).to(device)
+        print(f"Loss: CB-Focal (gamma=2.0, beta=0.999, label_smoothing=0.0) over counts {class_counts}")
+    else:
+        criterion = nn.CrossEntropyLoss(weight=class_weights.to(device), label_smoothing=0.1)
+        print("Loss: class-weighted CE + label smoothing (fallback)")
     
     # Optimizer
     optimizer = optim.AdamW(
@@ -778,7 +789,10 @@ def main():
     # Create model
     model = BirdClassifierCNN(num_classes=num_classes, dropout=args.dropout).to(device)
     print(f"Model parameters: {model.count_parameters():,}")
-    
+
+    # v6: per-class counts (augmented, class-index order) for CB-Focal loss
+    class_counts = [len(list((data_dir / c).glob("*.wav"))) for c in classes]
+
     # Train
     results = train(
         model=model,
@@ -790,6 +804,7 @@ def main():
         output_dir=output_dir,
         class_weights=class_weights,
         classes=classes,
+        class_counts=class_counts,
         lr=args.lr,
         weight_decay=args.weight_decay,
         patience=args.patience,

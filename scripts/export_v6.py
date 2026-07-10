@@ -38,6 +38,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from dataset_v3 import BirdAudioDatasetV3, EXPECTED_CLASSES_9
 
 
+# v6 (C1): mel bins — MUST match AlignedMelSpectrogram in dataset_v3.py (was 40, now 64).
+# Used for the example/trace input shape (1,1,MODEL_N_MELS,188) throughout export.
+MODEL_N_MELS = 64
+
 # =============================================================================
 # ESP32-OPTIMIZED MODEL WITH MEAN-BASED GLOBAL POOLING
 # =============================================================================
@@ -271,7 +275,7 @@ def generate_calibration_data(data_dir: Path, n_samples: int = 200, seed: int = 
 def export_float32(model: nn.Module, output_path: Path) -> None:
     print("\n=== Exporting Float32 Model ===")
     model.eval()
-    sample_input = torch.randn(1, 1, 40, 188)
+    sample_input = torch.randn(1, 1, MODEL_N_MELS, 188)
 
     edge_model = ai_edge_torch.convert(model, (sample_input,))
     edge_model.export(str(output_path))
@@ -284,7 +288,7 @@ def export_int8(model: nn.Module, output_path: Path, calibration_data: List[torc
     print("\n=== Exporting Int8 Model ===")
 
     model.eval()
-    sample_input = (torch.randn(1, 1, 40, 188),)
+    sample_input = (torch.randn(1, 1, MODEL_N_MELS, 188),)
 
     print("  Configuring PT2E quantizer...")
     quantizer = pt2e_quantizer.PT2EQuantizer().set_global(
@@ -473,6 +477,8 @@ def generate_model_meta_header(
     classes: List[str],
     calibration: Dict,
     header_path: Path,
+    n_mels: int = 64,       # v6 (C1): must match AlignedMelSpectrogram in dataset_v3.py
+    f_max: float = 7000.0,  # v6 (C1): documented here; realized in frontend_tables.h
 ) -> None:
     """model_meta.h: quantization params + decision rule + frontend contract.
     Firmware includes this and hardcodes NO magic numbers."""
@@ -497,39 +503,50 @@ def generate_model_meta_header(
         f.write(f"#define MODEL_OUTPUT_SCALE  {out_scale:.9e}f\n")
         f.write(f"#define MODEL_OUTPUT_ZP     {out_zp}\n\n")
         f.write("// --- decision rule: p = softmax(logits/T); detect iff\n")
-        f.write("//     argmax != BACKGROUND_IDX && p[argmax] >= DETECT_TAU ---\n")
+        f.write("//     argmax != BACKGROUND_IDX && p[argmax] >= DETECT_TAU_PER_CLASS[argmax] ---\n")
         f.write(f"#define DETECT_TEMPERATURE  {calibration['temperature']:.6f}f\n")
-        f.write(f"#define DETECT_TAU          {calibration['tau']:.6f}f\n")
+        f.write(f"#define DETECT_TAU          {calibration['tau']:.6f}f  // global fallback / legacy\n")
         f.write(f"#define BACKGROUND_IDX      {classes.index('background')}\n\n")
         f.write("// --- audio frontend contract (must match training exactly) ---\n")
         f.write("#define AUDIO_SAMPLE_RATE   16000\n")
         f.write("#define CLIP_SAMPLES        48000   // 3.0 s\n")
         f.write("#define N_FFT               512\n")
         f.write("#define HOP_LENGTH          256\n")
-        f.write("#define N_MELS              40\n")
+        f.write(f"#define N_MELS              {n_mels}\n")
         f.write("#define N_FRAMES            188     // 1 + CLIP_SAMPLES/HOP (center=true)\n")
         f.write("#define N_FFT_BINS          257     // N_FFT/2 + 1\n")
+        f.write(f"#define MEL_F_MAX           {f_max:.1f}f  // realized in frontend_tables.h\n")
         f.write("#define TOP_DB              80.0f   // dB clamp below global max\n\n")
         f.write(f"#define N_CLASSES           {len(classes)}\n")
         f.write("static const char *const CLASS_NAMES[N_CLASSES] = {\n")
         for cls in classes:
             f.write(f'    "{cls}",\n')
+        f.write("};\n\n")
+        # v6: per-class detection thresholds (index by argmax). background entry is unused
+        # (background is excluded from detection); fall back to the scalar tau if absent.
+        tpc = calibration.get("tau_per_class") or [calibration["tau"]] * len(classes)
+        f.write("// per-class softmax detection thresholds; index by argmax\n")
+        f.write("static const float DETECT_TAU_PER_CLASS[N_CLASSES] = {\n")
+        for cls, t in zip(classes, tpc):
+            f.write(f"    {float(t):.6f}f,  // {cls}\n")
         f.write("};\n")
 
     print(f"  Saved: {header_path} (in {in_scale:.6f}/{in_zp}, out {out_scale:.6f}/{out_zp}, "
-          f"T={calibration['temperature']:.3f}, tau={calibration['tau']:.2f})")
+          f"T={calibration['temperature']:.3f}, tau={calibration['tau']:.2f}, n_mels={n_mels})")
 
 
-def generate_frontend_tables_header(header_path: Path) -> None:
+def generate_frontend_tables_header(header_path: Path, n_mels: int = 64,
+                                    f_max: float = 7000.0) -> None:
     """frontend_tables.h: torchaudio's own mel filterbank (sparse rows) + periodic
-    Hann window, so device mel/window parity holds by construction."""
+    Hann window, so device mel/window parity holds by construction.
+    n_mels / f_max MUST match AlignedMelSpectrogram in dataset_v3.py (v6 C1: 64 / 7000)."""
     import torchaudio.transforms as T
 
     mel = T.MelSpectrogram(
-        sample_rate=16000, n_fft=512, hop_length=256, n_mels=40,
-        power=2.0, center=True, norm="slaney", mel_scale="htk",
+        sample_rate=16000, n_fft=512, hop_length=256, n_mels=n_mels,
+        power=2.0, center=True, norm="slaney", mel_scale="htk", f_max=f_max,
     )
-    fb = mel.mel_scale.fb.numpy()                          # (257, 40)
+    fb = mel.mel_scale.fb.numpy()                          # (257, n_mels)
     hann = torch.hann_window(512, periodic=True).numpy()   # (512,)
 
     starts, lens, offsets, weights = [], [], [], []
@@ -637,7 +654,7 @@ def main() -> int:
     esp32_model.eval()
 
     # Verify output match
-    test_input = torch.randn(1, 1, 40, 188)
+    test_input = torch.randn(1, 1, MODEL_N_MELS, 188)
     with torch.no_grad():
         orig_out = original_model(test_input)
         esp32_out = esp32_model(test_input)

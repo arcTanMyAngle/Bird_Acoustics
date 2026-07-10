@@ -137,18 +137,20 @@ class AlignedMelSpectrogram(nn.Module):
         sample_rate: int = 16000,
         n_fft: int = 512,
         hop_length: int = 256,
-        n_mels: int = 40,
+        n_mels: int = 64,       # v6 (C1): 40 -> 64 for finer low-band resolution (owl ~300 Hz)
         top_db: float = 80.0,
         center: bool = True,
+        f_max: float = 7000.0,  # v6 (C1): pack the 64 mel bins into the target band (was sr/2=8000)
     ):
         super().__init__()
-        
+
         self.sample_rate = sample_rate
         self.n_fft = n_fft
         self.hop_length = hop_length
         self.n_mels = n_mels
         self.top_db = top_db
-        
+        self.f_max = f_max
+
         self.mel_spec = T.MelSpectrogram(
             sample_rate=sample_rate,
             n_fft=n_fft,
@@ -158,6 +160,7 @@ class AlignedMelSpectrogram(nn.Module):
             center=center,
             norm='slaney',
             mel_scale='htk',
+            f_max=f_max,
         )
         
         self.amplitude_to_db = T.AmplitudeToDB(stype="power", top_db=top_db)
@@ -271,11 +274,12 @@ class BirdAudioDatasetV3(Dataset):
         self,
         data_dir: str,
         sample_rate: int = 16000,
-        n_mels: int = 40,
+        n_mels: int = 64,       # v6 (C1)
         n_fft: int = 512,
         hop_length: int = 256,
         duration: float = 3.0,
         top_db: float = 80.0,
+        f_max: float = 7000.0,  # v6 (C1)
         augment: bool = False,
         audio_augment: Optional[AudioAugment] = None,
         spec_augment: Optional[SpecAugment] = None,
@@ -295,6 +299,7 @@ class BirdAudioDatasetV3(Dataset):
             hop_length=hop_length,
             n_mels=n_mels,
             top_db=top_db,
+            f_max=f_max,
         )
         
         self.audio_augment = audio_augment
@@ -419,6 +424,11 @@ class BirdAudioDatasetV3(Dataset):
             count = counts.get(cls, 1)
             weights.append(total / (len(self.classes) * count))
         return torch.FloatTensor(weights)
+
+    def get_class_counts_list(self) -> List[int]:
+        """Per-class TRAIN counts in class-index order (for CBFocalLoss, scripts/losses.py)."""
+        counts = self.get_class_counts()
+        return [counts.get(cls, 1) for cls in self.classes]
     
     def get_sample_weights(self) -> torch.Tensor:
         """Per-sample weights for WeightedRandomSampler."""
@@ -735,14 +745,14 @@ def create_dataloaders_v3(
     
     # Augmentations
     audio_aug = AudioAugment(
-        noise_snr_range=(15, 30),
+        noise_snr_range=(5, 30),   # v6: floor 15->5 dB so training covers the field 0-5 dB regime
         gain_range=(-3, 3),
         p_noise=0.3,
         p_gain=0.5,
     ) if augment_train else None
-    
+
     spec_aug = SpecAugment(
-        freq_mask_param=8,
+        freq_mask_param=12,        # v6: scaled for 64 mels (was 8 at 40 mels, ~same 20% band)
         time_mask_param=25,
         n_freq_masks=2,
         n_time_masks=2,

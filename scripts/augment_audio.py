@@ -40,14 +40,17 @@ except ImportError:
 # ==========================================
 # CONFIGURATION
 # ==========================================
-INPUT_DIR = Path("data/processed")
+INPUT_DIR = Path("data/cleaned")            # v6: consume the audited/denoised set (clean_recordings.py)
 OUTPUT_DIR = Path("data/augmented")
-BACKGROUND_DIR = Path("data/processed/background")
+BACKGROUND_DIR = Path("data/cleaned/background")
 SAMPLE_RATE = 16000
 
 DEFAULT_AUGMENTS_PER_FILE = 2
-DEFAULT_NOISE_MIX_PROB = 0.3  # Probability of mixing background noise
-DEFAULT_SNR_RANGE = (5, 20)   # Signal-to-noise ratio range in dB
+DEFAULT_NOISE_MIX_PROB = 0.5  # v6: 0.3 -> 0.5, more field-like noise exposure
+DEFAULT_SNR_RANGE = (0, 20)   # v6: floor 5 -> 0 dB to cover the low-SNR regime v5 failed on
+
+# v6: over-sample the two weak classes (minority scrub_jay, low-recall owl) at the source
+PER_CLASS_AUGMENTS = {"california_scrub_jay": 4, "great_horned_owl": 4}
 
 
 # ==========================================
@@ -379,12 +382,13 @@ def main():
     
     for class_name in classes:
         is_background = (class_name == "background")
-        
+        n_augs = PER_CLASS_AUGMENTS.get(class_name, args.augments_per_file)  # v6: weak-class over-sampling
+
         orig, aug = process_class(
             class_name,
             input_dir,
             output_dir,
-            args.augments_per_file,
+            n_augs,
             augment_fn,
             noise_mixer,
             args.noise_mix_prob,

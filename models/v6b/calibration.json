@@ -1,0 +1,44 @@
+{
+  "temperature": 0.8853818774223328,
+  "tau": 0.6,
+  "tau_per_class": [
+    0.6,
+    0.95,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6
+  ],
+  "background_idx": 1,
+  "classes": [
+    "american_crow",
+    "background",
+    "california_quail",
+    "california_scrub_jay",
+    "great_horned_owl",
+    "killdeer",
+    "mourning_dove",
+    "red_tailed_hawk",
+    "western_meadowlark"
+  ],
+  "val_fp_rate": 0.0,
+  "val_bird_recall": 0.8905982905982905,
+  "test_fp_rate": 0.020833333333333332,
+  "test_bird_recall": 0.8633879781420765,
+  "val_fp_rate_per_class": 0.0,
+  "val_bird_recall_per_class": 0.8905982905982905,
+  "test_fp_rate_per_class": 0.020833333333333332,
+  "test_bird_recall_per_class": 0.8633879781420765,
+  "target_fp": 0.05,
+  "target_precision": 0.85,
+  "energy_diag": {
+    "bg_mean": 3.177978038787842,
+    "bg_std": 0.639359176158905,
+    "bird_mean": 6.716761112213135,
+    "bird_std": 3.1503231525421143
+  },
+  "operating_point_note": "scalar tau=0.60 chosen from v5-vs-v6b test frontier: dominates v5 in the 2-5% FP band (2.1% FP / 86.3% recall vs v5 2.2%/84.7%). Auto-calibrated tau=0.40 failed gate only due to fixed margin being small for the sharper label_smoothing=0 softmax; val is FP-blind (~15 bg groups)."
+}

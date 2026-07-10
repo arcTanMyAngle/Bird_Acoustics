@@ -1,0 +1,36 @@
+{
+  "pure_background": {
+    "correct": 48,
+    "total": 50
+  },
+  "snr_performance": {
+    "0": {
+      "correct": 14,
+      "total": 20,
+      "accuracy": 70.0
+    },
+    "5": {
+      "correct": 20,
+      "total": 20,
+      "accuracy": 100.0
+    },
+    "10": {
+      "correct": 16,
+      "total": 20,
+      "accuracy": 80.0
+    },
+    "15": {
+      "correct": 15,
+      "total": 20,
+      "accuracy": 75.0
+    },
+    "20": {
+      "correct": 18,
+      "total": 20,
+      "accuracy": 90.0
+    }
+  },
+  "false_positives": 2,
+  "background_rejection_rate": 96.0,
+  "false_positive_rate": 4.0
+}
