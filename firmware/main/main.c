@@ -47,7 +47,7 @@ static void inference_task(void *arg)
             int64_t now_ms = esp_timer_get_time() / 1000;
             ESP_LOGI(TAG, "DETECTED %s p=%.2f (pipeline %lld ms)",
                      CLASS_NAMES[d.class_idx], d.prob, dt_ms);
-            sd_logger_log(now_ms, d.class_idx, d.prob);
+            sd_logger_log_clip(now_ms, d.class_idx, d.prob, pcm, CLIP_SAMPLES);
         }
         if (++windows % 60 == 0)
             ESP_LOGI(TAG, "alive: %d windows, last pipeline %lld ms, arena %d B",
