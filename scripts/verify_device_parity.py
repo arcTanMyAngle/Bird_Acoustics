@@ -66,7 +66,7 @@ def main() -> int:
                 continue
             spec = transform(torch.from_numpy(seg).unsqueeze(0))[0].numpy()
             q = np.round(spec / in_s + in_zp).clip(-128, 127).astype(np.int8)
-            interpreter.set_tensor(inp["index"], q.reshape(1, 1, 40, 188))
+            interpreter.set_tensor(inp["index"], q.reshape(inp["shape"]))
             interpreter.invoke()
             host = (interpreter.get_tensor(out["index"]).flatten().astype(np.float32)
                     - out_zp) * out_s
